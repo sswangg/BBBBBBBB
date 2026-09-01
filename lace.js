@@ -20,7 +20,7 @@
           return 1000;
       } else {
           for (let i = 0; i < 100; i++) {
-              lights[i].rgb(frames[frameIndex][i][1]/255, frames[frameIndex][i][0]/255, frames[frameIndex][i][2]/255);
+              lights[i].rgb(frames[frameIndex][i][0]/255, frames[frameIndex][i][1]/255, frames[frameIndex][i][2]/255);
           }
           frameIndex = (frameIndex + 1) % frames.length;
           return 33;

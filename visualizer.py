@@ -81,7 +81,7 @@ class FFTRainbow(FFTVisualizerBase):
     def __init__(self):
         FFTVisualizerBase.__init__(self)
         self.hex_colors = ["7B00FF", "5255EE", "29AADD", "00FFCC", "4EFF88", "9CFF44", "EAFF00", "F1AA00", "F85500", "FF0000"]
-        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])[:,[1,0,2]]
+        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])
         self.num_bins = self.colors.shape[0]
         self.bin_size = float(LED_COUNT)/self.num_bins
         self.centers = (np.arange(self.num_bins) + 0.5) * self.bin_size
@@ -433,7 +433,7 @@ class Pillars(FFTVisualizerBase):
     def __init__(self):
         FFTVisualizerBase.__init__(self)
         self.hex_colors = ["7B00FF", "5255EE", "29AADD", "00FFCC", "4EFF88", "9CFF44", "EAFF00", "F1AA00", "F85500", "FF0000"]
-        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])[:,[1,0,2]]
+        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])
         self.num_bins = self.colors.shape[0]
         self.bounder = Bounder()
         self.smoother = SplitExponentialMovingAverage( 0.2, 0.6, np.zeros(self.num_bins))
@@ -465,7 +465,7 @@ class Planets(FFTVisualizerBase):
     def __init__(self):
         FFTVisualizerBase.__init__(self)
         self.hex_colors = ["7B00FF", "5255EE", "29AADD", "00FFCC", "4EFF88", "9CFF44", "EAFF00", "F1AA00", "F85500", "FF0000"]
-        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])[:,[1,0,2]]
+        self.colors = np.array([hex_to_rgb(h) for h in self.hex_colors])
         self.num_planets = 10
         # self.colors = self.colors[self.num_planets, :]
         self.pos = np.linspace(0., 1., self.num_planets)
@@ -630,8 +630,6 @@ def sample_color(x):
         [252, 88,  60],
         [254, 194, 45]
     ], dtype=float)
-    # reorder the columns to GRB
-    color_array = color_array[[1,0,2], :]
-
+    
     xs = np.arange(color_array.shape[0],dtype=float)/color_array.shape[0]
     return np.array([np.interp(x, xs, channel) for channel in color_array.T])
