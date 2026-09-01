@@ -39,6 +39,27 @@ class FFTVisualizerBase(VisualizerBase):
         self.mel = hertz_to_mel(self.freqs) # a mel filter to normalize the frequency intensity
 
 
+    def log_bin_setup(self, num_bins):
+        lo = self.min_freq if self.min_freq > 0 else self.freqs[1] # skip the DC bin
+        edges = np.geomspace(lo, self.max_freq, num_bins + 1)
+        starts = np.searchsorted(self.freqs, edges[:-1])
+
+        # reduceat needs strictly increasing indices, otherwise it silently returns
+        # a single element in place of a sum. Two edges landing in the same fft bin
+        # means the transform is too coarse to resolve the low end of this range.
+        if starts[-1] >= self.freqs.shape[0] or np.any(np.diff(starts) < 1):
+            raise ValueError(f'{self.name}: {num_bins} log bins between {lo:.0f} and '
+                             f'{self.max_freq} Hz need a finer fft than {self.fft_num_samples} '
+                             f'samples ({SAMPLING_FREQ/self.fft_num_samples:.1f} Hz resolution)')
+
+        self.bin_starts = starts
+        self.bin_edges = np.append(self.freqs[starts], self.max_freq)
+
+
+    def log_bins(self, fft):
+        return np.add.reduceat(fft, self.bin_starts)
+
+
     def fft(self, sample_array, hanning=False):
         # pad the sample array if necessary
         if self.fft_num_samples > self.required_samples:
@@ -89,17 +110,14 @@ class FFTRainbow(FFTVisualizerBase):
         self.centers = (np.arange(self.num_bins) + 0.5) * self.bin_size
         self.gaussians = np.vstack([gaussian(np.arange(LED_COUNT), mu, self.bin_size) for mu in self.centers])
         self.color_gaussians = np.multiply(self.colors.T[:,:,None], self.gaussians)
-        self.bounder = Bounder()
+        self.bounder = Bounder(init_L=np.zeros(self.num_bins), init_U=np.ones(self.num_bins))
         self.required_samples = 3500
-        self.fft_setup(0, 1500, 3500)
+        self.fft_setup(40, 8000, 3500)
+        self.log_bin_setup(self.num_bins)
 
     def visualize(self, sample_array):
         fft = self.fft(sample_array)
-        n = fft.shape[0]
-        n -= n % self.num_bins # make n divisible by the number of bins
-        fft = fft[:n] # take the first n elements of the fft
-
-        bin_activations = np.sum(fft.reshape([self.num_bins,-1]), axis=1) # how much in each frequency bin
+        bin_activations = self.log_bins(fft) # how much in each frequency bin
 
         # normalize the bin_activations
         self.bounder.update(bin_activations)
