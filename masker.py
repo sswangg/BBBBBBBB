@@ -1,5 +1,7 @@
 import numpy as np
+
 from config import *
+
 
 def bottom_up(m):
     '''
